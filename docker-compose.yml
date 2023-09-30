@@ -1,0 +1,40 @@
+version: '2'
+services:
+  mysql:
+    container_name: mysql
+    image: tamimhemat/acit3495:mysql
+    volumes:
+      - mysql-data:/var/lib/mysql
+  auth:
+    container_name: auth
+    image: tamimhemat/acit3495:auth
+    ports:
+      - 3000:3000
+    depends_on:
+      - mysql
+  upload:
+    container_name: upload
+    image: tamimhemat/acit3495:upload
+    ports:
+      - 4000:4000
+    depends_on:
+      - mysql
+  file_system:
+    image: tamimhemat/acit3495:file_system
+    container_name: file_system
+    volumes:
+      - filedata:/mnt/data
+    depends_on:
+      - mysql
+      - upload
+  viewer:
+    image: tamimhemat/acit3495:viewer
+    container_name: viewer
+    ports:
+      - 5000:5000
+    depends_on:
+      - mysql
+      - file_system
+volumes:
+  mysql-data:
+  filedata:

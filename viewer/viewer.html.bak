@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>File Viewer</title>
+  </head>
+  <body>
+    <h1>File Viewer</h1>
+    <div style="display: flex; flex-direction: row;">
+      <div style="width: 50%;">
+        <h3>File List</h3>
+        <ul id="file-list">
+          <!-- The list of filenames will be populated dynamically by JavaScript -->
+        </ul>
+      </div>
+      <div style="width: 50%;">
+        <h3>View File</h3>
+        <form id="file-form">
+          <input type="text" id="file-name" name="filename" placeholder="Enter file name">
+          <button type="submit">Enter</button>
+        </form>
+        <div id="file-content"></div>
+      </div>
+    </div>
+    <script>
+      // JavaScript code for dynamically populating the file list and loading the selected file content
+      const fileList = document.getElementById("file-list");
+      const fileForm = document.getElementById("file-form");
+      const fileNameInput = document.getElementById("file-name");
+      const fileContent = document.getElementById("file-content");
+
+      // Send a GET request to the server to fetch the list of file names
+      fetch("/viewer/file_list")
+        .then(response => response.json())
+        .then(data => {
+          // Populate the file list with the fetched file names
+          data.forEach(filename => {
+            const listItem = document.createElement("li");
+            const textNode = document.createTextNode(filename);
+            listItem.appendChild(textNode);
+            fileList.appendChild(listItem);
+          });
+        })
+        .catch(error => {
+          console.error("Error fetching file list:", error);
+        });
+
+      // Add an event listener to the form to handle file loading
+      fileForm.addEventListener("submit", event => {
+        event.preventDefault();
+        const fileName = fileNameInput.value;
+        console.log(fileName);
+        // Send a POST request to the server to fetch the selected file content
+        fetch("/viewer/file_content", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+             body: JSON.stringify({ filename: fileName })
+        })
+          .then(response => {
+            if (response.ok) {
+              // Set the file content to the fetched content
+              // response.text().then(content => {
+                // fileContent.innerHTML = content;
+              // });
+	      response.blob().then(blob => {
+		  const objectURL = URL.createObjectURL(blob);
+		  let mediaElement;
+		  
+		  mediaElement = document.createElement("audio");
+
+		  mediaElement.src = objectURL
+
+		  fileContent.innerHTML = "";
+		  fileContent.appendChild(mediaElement);
+		})
+            } else {
+              console.error("Error fetching file content:", response.statusText);
+            }
+          })
+          .catch(error => {
+            console.error("Error fetching file content:", error);
+          });
+      });
+    </script>
+  </body>
+</html>
